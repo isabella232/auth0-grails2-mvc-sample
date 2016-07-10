@@ -68,7 +68,7 @@ or username-password DB connection.
 
 Enter your:
 
-`client_id`, `client_secret`, and `domain` information into `src/java/com.auth0.web.Auth0Config`
+`client_id`, `client_secret`, and `domain` information into `grails-app/conf/auth0.properties`
 
 
 ### Build and Run

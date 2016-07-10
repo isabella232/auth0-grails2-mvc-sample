@@ -1,8 +1,9 @@
 package com.auth0.web;
 
-import org.springframework.boot.context.embedded.FilterRegistrationBean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
 
@@ -15,30 +16,30 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Configuration
+@PropertySource("classpath:auth0.properties")
 public class Auth0Config {
 
+    @Value(value = "${auth0.clientId}")
     private String clientId;
+
+    @Value(value = "${auth0.clientSecret}")
     private String clientSecret;
+
+    @Value(value = "${auth0.domain}")
     private String domain;
+
+    @Value(value = "${auth0.onLogoutRedirectTo}")
     private String onLogoutRedirectTo;
+
+    @Value(value = "${auth0.loginRedirectOnSuccess}")
     private String loginRedirectOnSuccess;
+
+    @Value(value = "${auth0.loginRedirectOnFail}")
     private String loginRedirectOnFail;
+
+    @Value(value = "${auth0.loginCallback}")
     private String loginCallback;
-    private Boolean servletFilterEnabled;
-    private String securedRoute;
 
-
-    public Auth0Config() {
-        this.setDomain("{DOMAIN}");
-        this.setClientId("{CLIENT_ID}");
-        this.setClientSecret("{CLIENT_SECRET}");
-        this.setOnLogoutRedirectTo("/login");
-        this.setSecuredRoute("/portal/*");
-        this.setLoginCallback("/callback");
-        this.setLoginRedirectOnSuccess("/portal/home");
-        this.setLoginRedirectOnFail("/login");
-        this.setServletFilterEnabled(true);
-    }
 
     @Bean(name = "auth0Filter")
     public Auth0Filter auth0Filter() {
@@ -49,72 +50,29 @@ public class Auth0Config {
         return clientId;
     }
 
-    public void setClientId(String clientId) {
-        this.clientId = clientId;
-    }
-
     public String getClientSecret() {
         return clientSecret;
-    }
-
-    public void setClientSecret(String clientSecret) {
-        this.clientSecret = clientSecret;
     }
 
     public String getDomain() {
         return domain;
     }
 
-    public void setDomain(String domain) {
-        this.domain = domain;
-    }
-
     public String getOnLogoutRedirectTo() {
         return onLogoutRedirectTo;
-    }
-
-    public void setOnLogoutRedirectTo(String onLogoutRedirectTo) {
-        this.onLogoutRedirectTo = onLogoutRedirectTo;
     }
 
     public String getLoginRedirectOnSuccess() {
         return loginRedirectOnSuccess;
     }
 
-    public void setLoginRedirectOnSuccess(String loginRedirectOnSuccess) {
-        this.loginRedirectOnSuccess = loginRedirectOnSuccess;
-    }
-
     public String getLoginRedirectOnFail() {
         return loginRedirectOnFail;
-    }
-
-    public void setLoginRedirectOnFail(String loginRedirectOnFail) {
-        this.loginRedirectOnFail = loginRedirectOnFail;
-    }
-
-    public String getSecuredRoute() {
-        return securedRoute;
-    }
-
-    public void setSecuredRoute(String securedRoute) {
-        this.securedRoute = securedRoute;
     }
 
     public String getLoginCallback() {
         return loginCallback;
     }
 
-    public void setLoginCallback(String loginCallback) {
-        this.loginCallback = loginCallback;
-    }
-
-    public Boolean getServletFilterEnabled() {
-        return servletFilterEnabled;
-    }
-
-    public void setServletFilterEnabled(Boolean servletFilterEnabled) {
-        this.servletFilterEnabled = servletFilterEnabled;
-    }
 }
 
