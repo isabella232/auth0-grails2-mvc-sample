@@ -4,7 +4,6 @@ import com.auth0.Auth0Exception;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.JWTVerifyException;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,22 +37,21 @@ public class Auth0Filter implements Filter {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private String onFailRedirectTo;
-    private String clientId;
-    private String clientSecret;
 
     private JWTVerifier jwtVerifier;
 
+    private Auth0Config auth0Config;
 
-    @Override
-    public void init(final FilterConfig filterConfig) throws ServletException {
-        onFailRedirectTo = filterConfig.getInitParameter("onFailRedirectTo");
-        Validate.notNull(onFailRedirectTo);
-        clientId = filterConfig.getInitParameter("clientId");
-        Validate.notNull(clientId);
-        clientSecret = filterConfig.getInitParameter("clientSecret");
-        Validate.notNull(clientSecret);
+    public Auth0Filter(final Auth0Config auth0Config) {
+        this.auth0Config = auth0Config;
+        this.onFailRedirectTo = auth0Config.getLoginRedirectOnFail();
+        final String clientSecret = auth0Config.getClientSecret();
+        final String clientId = auth0Config.getClientId();
         jwtVerifier = new JWTVerifier(new Base64(true).decodeBase64(clientSecret), clientId);
     }
+
+//    @Override
+    public void init(final FilterConfig filterConfig) throws ServletException {}
 
     protected void onSuccess(final ServletRequest req, final ServletResponse res, final FilterChain next,
                              final Auth0User auth0User) throws IOException, ServletException {
@@ -116,4 +114,3 @@ public class Auth0Filter implements Filter {
     public void destroy() {
     }
 }
-

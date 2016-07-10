@@ -1,5 +1,7 @@
 package com.auth0.web;
 
+import org.springframework.boot.context.embedded.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
@@ -15,6 +17,16 @@ import org.springframework.stereotype.Component;
 @Configuration
 public class Auth0Config {
 
+    private String clientId;
+    private String clientSecret;
+    private String domain;
+    private String onLogoutRedirectTo;
+    private String loginRedirectOnSuccess;
+    private String loginRedirectOnFail;
+    private String loginCallback;
+    private Boolean servletFilterEnabled;
+    private String securedRoute;
+
 
     public Auth0Config() {
         this.setDomain("{DOMAIN}");
@@ -28,17 +40,10 @@ public class Auth0Config {
         this.setServletFilterEnabled(true);
     }
 
-
-    private String clientId;
-    private String clientSecret;
-    private String domain;
-    private String onLogoutRedirectTo;
-    private String loginRedirectOnSuccess;
-    private String loginRedirectOnFail;
-    private String loginCallback;
-    private Boolean servletFilterEnabled;
-
-    private String securedRoute;
+    @Bean(name = "auth0Filter")
+    public Auth0Filter auth0Filter() {
+        return new Auth0Filter(this);
+    }
 
     public String getClientId() {
         return clientId;

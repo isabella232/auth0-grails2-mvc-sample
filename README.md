@@ -70,7 +70,6 @@ Enter your:
 
 `client_id`, `client_secret`, and `domain` information into `src/java/com.auth0.web.Auth0Config`
 
-Also enter your `client_id` and `client_secret` information into `src/templates/war/web.xml` in the auth0Filter section
 
 ### Build and Run
 
