@@ -5224,3 +5224,17 @@ n:2885:com/sun/tools/javac/code/Kinds$KindName
 n:1196:com/sun/tools/javac/comp/Resolve$15
 n:1897:com/sun/tools/javac/code/Kinds$1
 n:2133:org/codehaus/groovy/grails/cli/api/BaseSettingsApi$profile$0
+n:2909:org/springframework/boot/context/embedded/FilterRegistrationBean
+n:7851:org/springframework/boot/context/embedded/AbstractFilterRegistrationBean
+n:3385:org/springframework/boot/context/embedded/RegistrationBean
+n:288:org/springframework/boot/context/embedded/ServletContextInitializer
+n:886:org/springframework/boot/autoconfigure/condition/ConditionalOnProperty
+n:786:org/springframework/context/annotation/Bean
+n:1544:org/springframework/beans/factory/annotation/Autowire
+n:503:org/springframework/stereotype/Component
+n:568:org/springframework/context/annotation/Configuration
+n:836:org/springframework/boot/context/properties/ConfigurationProperties
+n:529:org/springframework/context/annotation/PropertySources
+n:717:org/springframework/context/annotation/PropertySource
+n:1117:jline/console/history/MemoryHistory$EntryImpl
+n:264:jline/console/history/History$Entry
