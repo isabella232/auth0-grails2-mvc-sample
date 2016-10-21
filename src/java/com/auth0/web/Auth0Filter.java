@@ -1,6 +1,9 @@
 package com.auth0.web;
 
 import com.auth0.Auth0Exception;
+import com.auth0.Auth0User;
+import com.auth0.SessionUtils;
+import com.auth0.Tokens;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.JWTVerifyException;
 import org.apache.commons.codec.binary.Base64;
