@@ -4,11 +4,12 @@ import com.auth0.Auth0Exception;
 import com.auth0.Auth0User;
 import com.auth0.SessionUtils;
 import com.auth0.Tokens;
+import com.auth0.jwt.Algorithm;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.JWTVerifyException;
 import org.apache.commons.codec.binary.Base64;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.commons.lang3.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -16,28 +17,20 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
 import java.security.SignatureException;
+
+import static com.auth0.jwt.pem.PemReader.readPublicKey;
 
 /**
  * Handles interception on a secured endpoint and does JWT Verification
  * Ensures for instance expired JWT tokens are not permitted access
  * Success and Failure navigation options are also configurable
- * <p>
- * This filter is ENABLED by setting the auth0.properties entry:
- * <p>
- * auth0.servletFilterEnabled: true
- * <p>
- * This option exists because a Spring App may wish to use classes
- * in this library but not have auto-configuration of the Filter enabled
- * <p>
- * A common scenario for this would be when wishing to leverage Spring Security
- * instead.
  */
 public class Auth0Filter implements Filter {
 
-    private static final Auth0Exception AUTH_ERROR = new Auth0Exception("Authentication Error");
-
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    @Autowired
+    private ServletContext context;
 
     private String onFailRedirectTo;
 
@@ -47,14 +40,40 @@ public class Auth0Filter implements Filter {
 
     public Auth0Filter(final Auth0Config auth0Config) {
         this.auth0Config = auth0Config;
-        this.onFailRedirectTo = auth0Config.getLoginRedirectOnFail();
-        final String clientSecret = auth0Config.getClientSecret();
+        onFailRedirectTo = auth0Config.getLoginRedirectOnFail();
+        Validate.notNull(onFailRedirectTo);
+        final String issuer = auth0Config.getIssuer();
+        Validate.notNull(issuer);
         final String clientId = auth0Config.getClientId();
-        jwtVerifier = new JWTVerifier(new Base64(true).decodeBase64(clientSecret), clientId);
+        Validate.notNull(clientId);
+        final String signingAlgorithmStr = auth0Config.getSigningAlgorithm();
+        final Algorithm signingAlgorithm = Algorithm.valueOf(signingAlgorithmStr);
+        switch (signingAlgorithm) {
+            case HS256:
+            case HS384:
+            case HS512:
+                final String clientSecret = auth0Config.getClientSecret();
+                Validate.notNull(clientSecret);
+                jwtVerifier = new JWTVerifier(new Base64(true).decodeBase64(clientSecret), clientId, issuer);
+                return;
+            case RS256:
+            case RS384:
+            case RS512:
+                final String publicKeyPath = auth0Config.getPublicKeyPath();
+                Validate.notEmpty(publicKeyPath);
+                try {
+                    final String publicKeyRealPath = context.getRealPath(publicKeyPath);
+                    final PublicKey publicKey = readPublicKey(publicKeyRealPath);
+                    Validate.notNull(publicKey);
+                    jwtVerifier = new JWTVerifier(publicKey, clientId, issuer);
+                    return;
+                } catch (Exception e) {
+                    throw new IllegalStateException(e.getMessage(), e.getCause());
+                }
+            default:
+                throw new IllegalStateException("Unsupported signing method: " + signingAlgorithm.getValue());
+        }
     }
-
-//    @Override
-    public void init(final FilterConfig filterConfig) throws ServletException {}
 
     protected void onSuccess(final ServletRequest req, final ServletResponse res, final FilterChain next,
                              final Auth0User auth0User) throws IOException, ServletException {
@@ -87,33 +106,27 @@ public class Auth0Filter implements Filter {
             final Auth0User auth0User = SessionUtils.getAuth0User(req);
             onSuccess(req, res, next, auth0User);
         } catch (InvalidKeyException e) {
-            logger.debug("InvalidKeyException thrown while decoding JWT token "
-                    + e.getLocalizedMessage());
-            throw AUTH_ERROR;
+            throw new Auth0Exception("InvalidKeyException thrown while decoding JWT token " + e.getLocalizedMessage());
         } catch (NoSuchAlgorithmException e) {
-            logger.debug("NoSuchAlgorithmException thrown while decoding JWT token "
-                    + e.getLocalizedMessage());
-            throw AUTH_ERROR;
+            throw new Auth0Exception("NoSuchAlgorithmException thrown while decoding JWT token " + e.getLocalizedMessage());
         } catch (IllegalStateException e) {
-            logger.debug("IllegalStateException thrown while decoding JWT token "
-                    + e.getLocalizedMessage());
-            throw AUTH_ERROR;
+            throw new Auth0Exception("IllegalStateException thrown while decoding JWT token " + e.getLocalizedMessage());
         } catch (SignatureException e) {
-            logger.debug("SignatureException thrown while decoding JWT token "
-                    + e.getLocalizedMessage());
-            throw AUTH_ERROR;
+            throw new Auth0Exception("SignatureException thrown while decoding JWT token " + e.getLocalizedMessage());
         } catch (IOException e) {
-            logger.debug("IOException thrown while decoding JWT token "
-                    + e.getLocalizedMessage());
-            throw AUTH_ERROR;
+            throw new Auth0Exception("IOException thrown while decoding JWT token " + e.getLocalizedMessage());
         } catch (JWTVerifyException e) {
-            logger.debug("JWTVerifyException thrown while decoding JWT token "
-                    + e.getLocalizedMessage());
-            throw AUTH_ERROR;
+            throw new Auth0Exception("JWTVerifyException thrown while decoding JWT token " + e.getLocalizedMessage());
         }
+    }
+
+    @Override
+    public void init(final FilterConfig filterConfig) throws ServletException {
     }
 
     @Override
     public void destroy() {
     }
 }
+
+
